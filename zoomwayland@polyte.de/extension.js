@@ -18,54 +18,51 @@
 
 /* exported init */
 
-const GETTEXT_DOMAIN = 'zoom-wayland-extension';
+import GObject from "gi://GObject";
+import St from "gi://St";
 
-const { GObject, St, Shell } = imports.gi;
+import {
+  Extension,
+  gettext as _,
+} from "resource:///org/gnome/shell/extensions/extension.js";
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Main = imports.ui.main;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
-
-const _ = ExtensionUtils.gettext;
+import * as Main from "resource:///org/gnome/shell/ui/main.js";
+import * as PanelMenu from "resource:///org/gnome/shell/ui/panelMenu.js";
+import * as PopupMenu from "resource:///org/gnome/shell/ui/popupMenu.js";
 
 const Indicator = GObject.registerClass(
-class Indicator extends PanelMenu.Button {
+  class Indicator extends PanelMenu.Button {
     _init() {
-        super._init(0.0, _('Zoom Wayland Indicator'));
+      super._init(0.0, _("Zoom Wayland Indicator"));
 
-        this.add_child(new St.Icon({
-            icon_name: 'display-symbolic',
-            style_class: 'system-status-icon',
-        }));
+      this.add_child(
+        new St.Icon({
+          icon_name: "display-symbolic",
+          style_class: "system-status-icon",
+        })
+      );
 
-        let switchItem = new PopupMenu.PopupSwitchMenuItem(_('Enable Zoom Screensharing'), false);
-        switchItem.connect('toggled', () => {
-          global.context.unsafe_mode = switchItem.state
-        });
+      let switchItem = new PopupMenu.PopupSwitchMenuItem(
+        _("Enable Zoom Screensharing"),
+        false
+      );
+      switchItem.connect("toggled", () => {
+        global.context.unsafe_mode = switchItem.state;
+      });
 
-        this.menu.addMenuItem(switchItem);
-
+      this.menu.addMenuItem(switchItem);
     }
-});
+  }
+);
 
-class Extension {
-    constructor(uuid) {
-        this._uuid = uuid;
-        ExtensionUtils.initTranslations(GETTEXT_DOMAIN);
-    }
+export default class ZoomWaylandExtension extends Extension {
+  enable() {
+    this._indicator = new Indicator();
+    Main.panel.addToStatusArea(this.uuid, this._indicator);
+  }
 
-    enable() {
-        this._indicator = new Indicator();
-        Main.panel.addToStatusArea(this._uuid, this._indicator);
-    }
-
-    disable() {
-        this._indicator.destroy();
-        this._indicator = null;
-    }
-}
-
-function init(meta) {
-    return new Extension(meta.uuid);
+  disable() {
+    this._indicator.destroy();
+    this._indicator = null;
+  }
 }
